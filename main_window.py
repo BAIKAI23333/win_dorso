@@ -1453,9 +1453,13 @@ class MainWindow(QMainWindow):
         import os
         import winreg
 
-        pythonw = os.path.join(sys.prefix, "pythonw.exe")
-        script = os.path.abspath(sys.argv[0])
-        value = f'"{pythonw}" "{script}"'
+        if getattr(sys, "frozen", False):
+            # PyInstaller bundle: there is no pythonw.exe; the exe is the interpreter
+            value = f'"{sys.executable}"'
+        else:
+            pythonw = os.path.join(sys.prefix, "pythonw.exe")
+            script = os.path.abspath(sys.argv[0])
+            value = f'"{pythonw}" "{script}"'
 
         key = winreg.HKEY_CURRENT_USER
         sub = r"Software\Microsoft\Windows\CurrentVersion\Run"

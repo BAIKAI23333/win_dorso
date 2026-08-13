@@ -4,14 +4,21 @@ Inspired by tldev/dorso (macOS). Uses MediaPipe Pose + PyQt6.
 """
 
 import ctypes
+import os
 import sys
 from ctypes import wintypes
 
 from PyQt6.QtCore import QLibraryInfo, QTranslator
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from main_window import MainWindow
+
+
+def _resource_path(name: str) -> str:
+    """Locate a bundled asset in both dev and PyInstaller-frozen modes."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, name)
 
 # Keep the mutex handle alive for the whole process lifetime
 _mutex_handle = None
@@ -37,6 +44,10 @@ def main():
     font.setFamily("Microsoft YaHei UI")
     font.setPointSize(11)
     app.setFont(font)
+
+    # Window/taskbar icon — set explicitly so it does not rely on the
+    # exe's embedded icon (which Explorer caches aggressively)
+    app.setWindowIcon(QIcon(_resource_path(os.path.join("assets", "win_dorso.ico"))))
 
     # Load Qt's built-in Chinese translation for standard dialogs
     translator = QTranslator(app)

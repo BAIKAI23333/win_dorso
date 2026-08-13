@@ -5,6 +5,10 @@ __pycache__/
 .venv/
 venv/
 
+# PyInstaller output
+build/
+dist/
+
 # Logs — may contain local paths / usernames
 logs/
 *.log

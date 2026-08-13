@@ -24,6 +24,24 @@ python main.py
 - 无测试、无 linter 配置。改动后手动运行 `python main.py` 验证（需摄像头）。
 - 新增顶层 .py 模块时，同步加入 pyproject.toml 的 `[tool.setuptools] py-modules` 列表。
 
+## 打包（exe / 安装包）
+
+构建环境：conda env `win_dorso`（PyInstaller 已装，仅构建期工具，不在 requirements.txt 中）。
+
+```powershell
+# exe（onedir，输出 dist\WinDorso\）
+C:\Users\Bai Kai\.conda\envs\win_dorso\Scripts\pyinstaller.exe windorso.spec --noconfirm
+
+# 安装包（Inno Setup 6，per-user 安装；输出 dist\installer\WinDorso-Setup-0.1.0.exe）
+"C:\Users\Bai Kai\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
+```
+
+- [windorso.spec](windorso.spec) 的 excludes 列表（jax/jaxlib/scipy/sounddevice）和 mediapipe 子模块过滤（genai/test）是**刻意裁剪**：经源码级验证（`grep mediapipe 源码`），`mp.solutions.pose` 运行链不需要它们；但 `mp.solutions.drawing_utils` 顶层 import matplotlib，故 matplotlib/PIL 必须保留。裁剪前 bundle 691MB → 裁剪后 393MB。新增依赖或升级 mediapipe 后需重新验证。
+- `_set_launch_at_login`（main_window.py）有 `sys.frozen` 分支：打包后开机自启写 `sys.executable`，勿改回只支持 `sys.prefix + pythonw.exe` 的写法。
+- 冒烟测试：直接运行 `dist\WinDorso\WinDorso.exe` 验证启动（单实例互斥会与开发版 python 实例冲突）。
+- 无代码签名证书 → 用户下载运行会触发 SmartScreen 警告。
+- exe 图标来自 [assets/make_icon.py](assets/make_icon.py)（PIL 程序化绘制，dorso 设计语言：navy #132241 背景 + cyan #2DC7E9 坐姿侧影），产物为 assets/icon.png（1024 源图）与 assets/win_dorso.ico（多尺寸），由 spec 和 installer.iss 各自引用。改图标 = 改 make_icon.py 重跑 + 重新打包。
+
 ## 架构
 
 ### 线程模型（核心）
